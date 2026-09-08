@@ -1,0 +1,21 @@
+{
+  "name": "automotive-lead-management-system",
+  "version": "1.0.0",
+  "description": "Production-Grade Automotive Lead Management System for Used Cars and Commercial Vehicles",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "test": "cd backend && npm test",
+    "seed": "cd backend && npm run db:seed",
+    "db:push": "cd backend && npm run db:push",
+    "db:generate": "cd backend && npm run db:generate"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

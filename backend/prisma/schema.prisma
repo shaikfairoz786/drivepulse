@@ -1,0 +1,297 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  mobile       String    @unique
+  role         String    @default("SALES_EXECUTIVE") // ADMIN, MANAGER, SALES_EXECUTIVE, FIELD_AGENT
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  assignedRequirements CustomerRequirement[] @relation("AssignedStaff")
+  activities           LeadActivity[]
+  followUps            FollowUp[]
+  auditLogs            AuditLog[]
+  notifications        Notification[]
+  preparedMessages     CommunicationLog[]
+
+  @@index([role])
+  @@index([email])
+  @@index([mobile])
+}
+
+model Customer {
+  id                  String                @id @default(uuid())
+  fullName            String
+  primaryMobile       String                @unique
+  alternateMobile     String?
+  email               String?
+  location            String?
+  city                String?
+  state               String?
+  address             String?
+  preferredContact    String?               @default("WHATSAPP")
+  customerType        String?               @default("INDIVIDUAL") // INDIVIDUAL / FLEET_OPERATOR / BUSINESS
+  source              String                @default("WALK_IN")
+  notes               String?
+  createdById         String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  requirements        CustomerRequirement[]
+  communications      CommunicationLog[]
+
+  @@index([primaryMobile])
+  @@index([fullName])
+  @@index([city])
+}
+
+model CustomerRequirement {
+  id                  String          @id @default(uuid())
+  customerId          String
+  customer            Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  // Categorization
+  category            String          @default("PASSENGER") // PASSENGER, COMMERCIAL
+  status              String          @default("NEW")       // NEW, CONTACTED, REQUIREMENT_CONFIRMED, VEHICLE_SEARCHING, VEHICLE_MATCHED, VEHICLE_SHARED, INTERESTED, VISIT_SCHEDULED, VEHICLE_VIEWED, TEST_DRIVE, NEGOTIATION, BOOKING, WON, LOST, FOLLOW_UP_LATER
+  priority            String          @default("MEDIUM")    // LOW, MEDIUM, HIGH, URGENT
+  source              String          @default("WALK_IN")
+  assignedToId        String?
+  assignedTo          User?           @relation("AssignedStaff", fields: [assignedToId], references: [id])
+
+  // Common Passenger & Commercial Criteria
+  brand               String?         // e.g. Toyota, Tata, Mahindra
+  model               String?         // e.g. Innova, Thar, Ace Gold
+  variant             String?         // e.g. ZX 2.4, HT Diesel
+  minBudget           Float?          // In INR
+  maxBudget           Float?          // In INR
+  minYear             Int?
+  maxYear             Int?
+  fuelType            String?         // DIESEL, PETROL, CNG, ELECTRIC, HYBRID
+  transmission        String?         // MANUAL, AUTOMATIC, ANY
+  maxKm               Int?
+  preferredColor      String?
+  ownershipPreference String?         // 1st Owner, 2nd Owner, Any
+  locationPreference  String?
+  usagePurpose        String?         // Personal, Rental, Taxi, Commercial Logistics
+  generalNotes        String?
+
+  // Dedicated Commercial Vehicle Attributes
+  commercialType      String?         // PICKUP, MINI_TRUCK, LCV, MCV, HCV, BUS, TIPPER, TANKER
+  bodyType            String?         // OPEN_CONTAINER, CLOSED_CONTAINER, FLATBED, HIGH_DECK
+  payloadCapacityKg   Float?          // in KG or Tons
+  numberOfWheels      Int?            // 4, 6, 10, 12, etc.
+  axleConfiguration   String?         // 4x2, 6x2, 6x4
+  loadRequirement     String?         // FMCG, Agri, Heavy Machinery, Sand/Gravel
+  routePermit         String?         // National Permit, State Permit, Local
+
+  // Lifecycle Timestamps & Results
+  lostReason          String?
+  wonDealAmount       Float?
+  closedAt            DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  matches             VehicleMatch[]
+  followUps           FollowUp[]
+  activities          LeadActivity[]
+  communications      CommunicationLog[]
+
+  @@index([customerId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([category])
+  @@index([brand, model])
+  @@index([minBudget, maxBudget])
+}
+
+model Vehicle {
+  id                     String          @id @default(uuid())
+  externalVehicleId      String?         @unique // For future marketplace sync
+  registrationNumber     String?         @unique
+  make                   String          // Brand: Toyota, Tata, Mahindra, Maruti
+  model                  String          // Innova, Thar, Ace, Intra
+  variant                String?
+  category               String          @default("PASSENGER") // PASSENGER, COMMERCIAL
+  vehicleType            String?         // SUV, Sedan, Mini Truck, Pickup, etc.
+  manufacturingYear      Int
+  registrationYear       Int?
+  fuelType               String          // DIESEL, PETROL, CNG, ELECTRIC
+  transmission           String?    
+       // MANUAL, AUTOMATIC
+  kmDriven               Int
+  numberOfOwners         Int             @default(1)
+  color                  String?
+  price                  Float           // Selling Price in INR
+  location               String
+  description            String?
+  status                 String          @default("AVAILABLE") // AVAILABLE, RESERVED, ON_HOLD, SOLD, INACTIVE, UNDER_INSPECTION
+
+  // Commercial Specific Attributes
+  bodyType               String?
+  payloadCapacityKg      Float?
+  numberOfWheels         Int?
+  axleConfiguration      String?
+  permitType             String?
+
+  // Marketplace & Link URLs
+  publicVehicleUrl       String?
+  externalMarketplaceUrl String?
+  source                 String?         @default("DIRECT_INVENTORY")
+
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
+  images                 VehicleImage[]
+  matches                VehicleMatch[]
+  communications         CommunicationLog[]
+
+  @@index([status])
+  @@index([category])
+  @@index([make, model])
+  @@index([price])
+  @@index([manufacturingYear])
+  @@index([fuelType])
+}
+
+model VehicleImage {
+  id        String   @id @default(uuid())
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean  @default(false)
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([vehicleId])
+}
+
+model VehicleMatch {
+  id            String              @id @default(uuid())
+  requirementId String
+  requirement   CustomerRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  vehicleId     String
+  vehicle       Vehicle             @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  matchScore    Float               // 0 to 100
+  matchReasons  String              // JSON string of criteria breakdowns
+  isIgnored     Boolean             @default(false)
+  isShared      Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([requirementId, vehicleId])
+  @@index([requirementId])
+  @@index([vehicleId])
+  @@index([matchScore])
+}
+
+model FollowUp {
+  id            String              @id @default(uuid())
+  requirementId String
+  requirement   CustomerRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  assignedToId  String
+  assignedTo    User                @relation(fields: [assignedToId], references: [id])
+  followUpDate  DateTime
+  followUpType  String              @default("CALL")    // CALL, WHATSAPP, VISIT, TEST_DRIVE, MEETING, OTHER
+  status        String              @default("PENDING") // PENDING, COMPLETED, CANCELLED, MISSED
+  notes         String?
+  outcome       String?
+  completedAt   DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([requirementId])
+  @@index([assignedToId])
+  @@index([followUpDate, status])
+}
+
+model LeadActivity {
+  id            String              @id @default(uuid())
+  requirementId String
+  requirement   CustomerRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  performedById String?
+  performedBy   User?               @relation(fields: [performedById], references: [id])
+  activityType  String              // LEAD_CREATED, STATUS_CHANGED, VEHICLE_MATCHED, CALL_LOGGED, NOTE_ADDED, WHATSAPP_PREPARED, etc.
+  title         String
+  description   String
+  metadata      String?             // JSON string for structured contextual data
+  createdAt     DateTime            @default(now())
+
+  @@index([requirementId])
+  @@index([activityType])
+  @@index([createdAt])
+}
+
+model CommunicationLog {
+  id              String              @id @default(uuid())
+  customerId      String
+  customer        Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  requirementId   String?
+  requirement     CustomerRequirement? @relation(fields: [requirementId], references: [id], onDelete: SetNull)
+  vehicleId       String?
+  vehicle         Vehicle?            @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  channel         String              @default("WHATSAPP")
+  templateType    String              @default("MATCHING_VEHICLE_ALERT")
+  messageContent  String
+  recipientMobile String
+  mediaUrl        String?
+  status          String              @default("PREPARED") // PREPARED, MANUALLY_SENT, CONTACTED, RESPONDED, NO_RESPONSE, DELIVERED, READ, FAILED
+  preparedById    String
+  preparedBy      User                @relation(fields: [preparedById], references: [id])
+  sentAt          DateTime?
+  createdAt       DateTime            @default(now())
+
+  @@index([customerId])
+  @@index([requirementId])
+  @@index([vehicleId])
+  @@index([status])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  entity     String   // Customer, Requirement, Vehicle, User, etc.
+  entityId   String
+  action     String   // CREATE, UPDATE, DELETE, STATUS_CHANGE, ASSIGNMENT
+  oldValue   String?  // JSON string
+  newValue   String?  // JSON string
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String   // JSON string
+  description String?
+  updatedAt   DateTime @updatedAt
+}

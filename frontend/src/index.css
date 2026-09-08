@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans min-h-screen antialiased selection:bg-brand-100 selection:text-brand-900;
+  }
+}
+
+/* Crisp light theme scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Subtle utility helper classes */
+.card-base {
+  @apply bg-white border border-slate-200/90 rounded-xl shadow-subtle hover:shadow-card hover:border-slate-300/80 transition-all duration-150;
+}
+
+.table-header {
+  @apply bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10;
+}
+
+.table-row {
+  @apply border-b border-slate-100/90 hover:bg-slate-50/80 transition-colors;
+}
+
+.font-heading {
+  @apply font-display tracking-tight;
+}
+
+.stat-pill {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+}

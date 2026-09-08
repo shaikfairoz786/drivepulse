@@ -1,0 +1,79 @@
+export enum Role {
+  ADMIN = 'ADMIN',
+  MANAGER = 'MANAGER',
+  SALES_EXECUTIVE = 'SALES_EXECUTIVE',
+  FIELD_AGENT = 'FIELD_AGENT',
+}
+
+export enum LeadStatus {
+  NEW = 'NEW',
+  CONTACTED = 'CONTACTED',
+  REQUIREMENT_CONFIRMED = 'REQUIREMENT_CONFIRMED',
+  VEHICLE_SEARCHING = 'VEHICLE_SEARCHING',
+  VEHICLE_MATCHED = 'VEHICLE_MATCHED',
+  VEHICLE_SHARED = 'VEHICLE_SHARED',
+  INTERESTED = 'INTERESTED',
+  VISIT_SCHEDULED = 'VISIT_SCHEDULED',
+  VEHICLE_VIEWED = 'VEHICLE_VIEWED',
+  TEST_DRIVE = 'TEST_DRIVE',
+  NEGOTIATION = 'NEGOTIATION',
+  BOOKING = 'BOOKING',
+  WON = 'WON',
+  LOST = 'LOST',
+  FOLLOW_UP_LATER = 'FOLLOW_UP_LATER',
+}
+
+export enum Priority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  URGENT = 'URGENT',
+}
+
+export enum VehicleCategory {
+  PASSENGER = 'PASSENGER',
+  COMMERCIAL = 'COMMERCIAL',
+}
+
+export enum VehicleStatus {
+  AVAILABLE = 'AVAILABLE',
+  RESERVED = 'RESERVED',
+  ON_HOLD = 'ON_HOLD',
+  SOLD = 'SOLD',
+  INACTIVE = 'INACTIVE',
+  UNDER_INSPECTION = 'UNDER_INSPECTION',
+}
+
+export enum FollowUpType {
+  CALL = 'CALL',
+  WHATSAPP = 'WHATSAPP',
+  VISIT = 'VISIT',
+  TEST_DRIVE = 'TEST_DRIVE',
+  MEETING = 'MEETING',
+  OTHER = 'OTHER',
+}
+
+export enum FollowUpStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+  MISSED = 'MISSED',
+}
+
+export enum CommunicationStatus {
+  PREPARED = 'PREPARED',
+  MANUALLY_SENT = 'MANUALLY_SENT',
+  CONTACTED = 'CONTACTED',
+  RESPONDED = 'RESPONDED',
+  NO_RESPONSE = 'NO_RESPONSE',
+  DELIVERED = 'DELIVERED',
+  READ = 'READ',
+  FAILED = 'FAILED',
+}
+
+export interface MatchReason {
+  factor: string;
+  status: 'MATCH' | 'STRONG_MATCH' | 'PARTIAL' | 'NOT_SPECIFIED' | 'MISMATCH';
+  detail: string;
+  scoreContribution?: number;
+}

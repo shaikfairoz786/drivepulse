@@ -1,0 +1,25 @@
+services:
+  # -------------------------------------------------------------
+  # Backend Web Service (Node.js + Express + Prisma)
+  # -------------------------------------------------------------
+  - type: web
+    name: drivepulse-backend
+    env: node
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: npm install --include=dev && npx prisma generate && npm run build
+    startCommand: npx prisma db push && node dist/src/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: '*'
+      # Paste your Neon DB connection string in the Render dashboard:
+      - key: DATABASE_URL
+        sync: false
